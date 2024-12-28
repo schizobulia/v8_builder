@@ -15,11 +15,33 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
     - name: Build
       shell: cmd
       run: call ./windows.bat
-    - name: Archive v8_monolith
-      uses: actions/upload-artifact@v3
+
+    - name: Create a ZIP file of the entire v8/out directory
+      shell: powershell
+      run: |
+        Compress-Archive -Path v8/out -DestinationPath v8_out.zip -Force
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: v8_monolith
-        path: v8/v8/out/windows/obj/v8_monolith.lib
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./v8_out.zip
+        asset_name: v8_out.zip
+        asset_content_type: application/zip
