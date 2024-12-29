@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
+    timeout-minutes: 240  # 设置超时时间为4个小时
     steps:
     - uses: actions/checkout@v3
 
@@ -20,9 +20,9 @@ jobs:
       run: call ./windows.bat
 
     - name: Compress v8 Directory
+      shell: pwsh
       run: |
         Compress-Archive -Path v8\* -DestinationPath v8_out.zip -Force
-      shell: pwsh
 
     - name: Create Release
       id: create_release
@@ -33,7 +33,7 @@ jobs:
         draft: false
         prerelease: false
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
 
     - name: Upload v8_out.zip to Release
       uses: actions/upload-release-asset@v1
@@ -42,3 +42,5 @@ jobs:
         asset_path: ./v8_out.zip
         asset_name: v8_out.zip
         asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.MY_PERSONAL_ACCESS_TOKEN }}
